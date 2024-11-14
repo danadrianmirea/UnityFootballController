@@ -28,26 +28,25 @@ public class CameraController : MonoBehaviour
         // Initialize currentRotationX and currentRotationY based on the current camera rotation
         currentRotationX = transform.eulerAngles.x;
         currentRotationY = transform.eulerAngles.y;
-    }
 
-    private void Update()
-    {
-        // Check for Escape key press to disable camera rotation and unlock cursor
-        if (Input.GetKeyDown(KeyCode.Escape))
-        {
-            DisableCameraRotation();
-        }
+        //isRotationEnabled = true;
 
-        // Check for mouse click to enable camera rotation and lock cursor
-        if (Input.GetMouseButtonDown(0)) // 0 is the left mouse button
+        if (Application.isEditor == false)
         {
             EnableCameraRotation();
         }
 
+        //Invoke("EnableCameraRotation", 0.5f);
+    }
+
+    private void Update()
+    {
         if (Input.GetKeyDown(KeyCode.Return))
         {
             isFirstPerson = !isFirstPerson;
         }
+        player.GetComponent<Renderer>().enabled = !isFirstPerson;
+
 
         if (Input.GetKeyDown(KeyCode.Q)) // kick ball slightly forward to move with it
         {
@@ -62,6 +61,7 @@ public class CameraController : MonoBehaviour
         {
             ball.transform.position = player.transform.position + resetDistance * player.transform.forward;
             ballRb.velocity = Vector3.zero;
+            ballRb.angularVelocity = Vector3.zero;
         }
         else if (Input.GetKeyDown(KeyCode.E)) // stop ball
         {
@@ -70,21 +70,22 @@ public class CameraController : MonoBehaviour
             if (distanceToBall <= kickDistanceThreshold)
             {
                 ballRb.velocity = Vector3.zero;
+                ballRb.angularVelocity = Vector3.zero;
             }
         }
 
-        if (Input.GetMouseButtonDown(1)) // 1 is the right mouse button
-        {
-            KickBall();
+        //if (Input.GetMouseButtonDown(1)) // 1 is the right mouse button
+        //{
+          //  KickBall();
             //isFirstPerson = true;
             //ToggleCrosshair(true);
-        }
-        else if (Input.GetMouseButtonUp(1)) // Right mouse button released
-        {
+        //}
+        //else if (Input.GetMouseButtonUp(1)) // Right mouse button released
+        //{
             //isFirstPerson = false;
             //ToggleCrosshair(false);
             //KickBall();
-        }
+        //}
 
         // If camera rotation is enabled, handle the mouse look
         if (isRotationEnabled)
@@ -94,6 +95,29 @@ public class CameraController : MonoBehaviour
 
         // Always follow the player (smooth position interpolation)
         FollowPlayer();
+
+        if (Application.isEditor)
+        {
+            if (Input.GetMouseButtonDown(1))
+            {
+                if (isRotationEnabled == true)
+                {
+                    DisableCameraRotation();
+                }
+            }
+        }
+
+        if (Input.GetMouseButtonDown(0)) // 0 is the left mouse button
+        {
+            if (isRotationEnabled == false)
+            {
+                EnableCameraRotation();
+            }
+            else
+            {
+                KickBall();
+            }
+        }
     }
 
     // Camera follows the player with smooth position and rotation interpolation
@@ -169,13 +193,9 @@ public class CameraController : MonoBehaviour
     // Enable camera rotation and lock the cursor
     private void EnableCameraRotation()
     {
-        // Initialize currentRotationX and currentRotationY based on the current camera rotation
-        currentRotationX = transform.eulerAngles.x;
-        currentRotationY = transform.eulerAngles.y;
-
-        isRotationEnabled = true;
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
+        isRotationEnabled = true;
     }
 
     // Disable camera rotation and unlock the cursor
